@@ -5,6 +5,10 @@ var bodyParser = require('body-parser');
 //var pg = require('pg');
 //var querystring = require('querystring');
 
+const fs = require('fs');
+const AWS = require('aws-sdk');
+const multer = require('multer');
+
 const express = require('express')
 const app = express()
 const path = require('path');
@@ -29,6 +33,7 @@ global.LOG_TYPE_LINE_REGISTER_ID = "LINE登録(ID)";
 global.LOG_TYPE_LINE_REGISTER_NAME = "LINE登録(名前)";
 global.LOG_TYPE_LINE_UNREGISTER = "LINE登録解除";
 global.LOG_TYPE_LINE_BROADCAST = "LINE一斉送信";
+global.LOG_TYPE_LINE_MESSAGE ="LINEメッセージ";
 
 global.line_reply_mode;
 global.input_line_message;
@@ -38,10 +43,11 @@ global.line_reply_token;
 global.LINE_MODE_1 = 1;
 
 global.LINE_MODE_ACCEPT_REPLY = 2;
-global.LINE_MODE_DENEY_REPLY_NO_DATA = 3;
-global.LINE_MODE_DENEY_REPLY_ALREADY_EXIST = 4;
-global.LINE_MODE_DENEY_REPLY_CANCEL = 5;
-global.LINE_MODE_DENEY_REPLY_SHOW_CALENDER = 6;
+global.LINE_MODE_REPLY_COMMENT1 = 3;
+global.LINE_MODE_DENEY_REPLY_NO_DATA = 4;
+global.LINE_MODE_DENEY_REPLY_ALREADY_EXIST = 5;
+global.LINE_MODE_DENEY_REPLY_CANCEL = 6;
+global.LINE_MODE_DENEY_REPLY_SHOW_CALENDER = 7;
 global.LINE_MODE_SHOW_CALENDER = 90;
 
 
@@ -132,8 +138,15 @@ app.post("/api/commandtest/:command", function(req, res, next){
 
       info2 = new PushMessage();
       info2.type = 'image';   //https://developers.line.biz/ja/reference/messaging-api/#image-message
-      info2.originalContentUrl = "https://corporate.jp.sharp/shared/img/logo_sharp_200sq.png";
-      info2.previewImageUrl = "https://corporate.jp.sharp/shared/img/logo_sharp_200sq.png";
+      info2.originalContentUrl = "https://degital-kairanban.s3.us-west-2.amazonaws.com/image.jpg?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDmFwLW5vcnRoZWFzdC0xIkYwRAIgckmQhlm7OprVrsyVCTyEuAQca0rv5N%2Fdc3niNNff8MQCIB%2F6iK37oG3gCkrxtdjBnIiAnftx0lpoovnX%2BJeCAOMYKqcCCBgQAxoMNDQwMDk5NDM2Mzk1Igw8zE3LJNL0C0eZFo4qhAINqJJHfhRtNg4gk%2Be4dMyPHCepmbdOHtKQEiNhsuTgC2j%2FwaeavNMAspPLi5GMpIKWdPQvBulLlTDaGxSChrFNnqMGsITsV7lvPi4laYylt9wzGsHRUZKK%2Fq74nUUNAl56On4Q1theFIcX2OsR1ajgXYcoIE%2BuxqqQ3tgM73aT4oXt8nKfyxcG5dx5vGtyZGe6BhtSt%2F3bXV9rNFtk7SiMYyT3RKFafsFeN%2F9uIwu6QGXtUdT3Y9qX7HlvkXXhdpfPS7vpi3vPx%2BaurMuURPNdA%2B%2BlHki735XZ5WvrA1CIXzr80jg2EEGDozKO%2BlNmrztFwhiY1lxsqwc3PC40%2BkRyXQBtIzC44vCOBjrgAf6gpBmCS3j6SD2StPV8cEtGg1HtqQjzZswy0CLqvnDwlGnddc91It%2FZrQbskaZJh9iZUBv8konJmJ16Er1WxYrGIRTU2BsOS0%2F9hWvb0Qs5xFzCCWLPrO083feJRXc9PGYPl2ABw7uJEXnY8IP7v5bxnW1h8I1X%2F1uU6dzL%2FKZ%2FtlzbiUHBMd7UfdFjdLR%2Fzt4oAJb7QFlZ%2Bjh3rs3gOab%2BWhI8maDs8L02qN6kYZCVVKptclc5gJn7GCBhhx5l%2F3s%2FonaN6i1d5ZOnDEnIl2ioXpaCTEmfa7o2gYzkxXR5&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220110T224356Z&X-Amz-SignedHeaders=host&X-Amz-Expires=1200&X-Amz-Credential=ASIAWM57YO5VYPR3UBDY%2F20220110%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=11d635bcfd0d66022310ab2f80cfe815abc25dd465aa46d52761773b9a9dc338";
+      //info2.originalContentUrl = "https://dev-degital-kairanban.herokuapp.com/tmp/image.jpg";
+      //info2.originalContentUrl = "/tmp/image.jpg";
+      
+      //info2.originalContentUrl = "https://corporate.jp.sharp/shared/img/logo_sharp_200sq.png";
+      //info2.previewImageUrl = "https://dev-degital-kairanban.herokuapp.com/tmp/image.jpg";
+      info2.previewImageUrl = "https://degital-kairanban.s3.us-west-2.amazonaws.com/image.jpg?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDmFwLW5vcnRoZWFzdC0xIkYwRAIgckmQhlm7OprVrsyVCTyEuAQca0rv5N%2Fdc3niNNff8MQCIB%2F6iK37oG3gCkrxtdjBnIiAnftx0lpoovnX%2BJeCAOMYKqcCCBgQAxoMNDQwMDk5NDM2Mzk1Igw8zE3LJNL0C0eZFo4qhAINqJJHfhRtNg4gk%2Be4dMyPHCepmbdOHtKQEiNhsuTgC2j%2FwaeavNMAspPLi5GMpIKWdPQvBulLlTDaGxSChrFNnqMGsITsV7lvPi4laYylt9wzGsHRUZKK%2Fq74nUUNAl56On4Q1theFIcX2OsR1ajgXYcoIE%2BuxqqQ3tgM73aT4oXt8nKfyxcG5dx5vGtyZGe6BhtSt%2F3bXV9rNFtk7SiMYyT3RKFafsFeN%2F9uIwu6QGXtUdT3Y9qX7HlvkXXhdpfPS7vpi3vPx%2BaurMuURPNdA%2B%2BlHki735XZ5WvrA1CIXzr80jg2EEGDozKO%2BlNmrztFwhiY1lxsqwc3PC40%2BkRyXQBtIzC44vCOBjrgAf6gpBmCS3j6SD2StPV8cEtGg1HtqQjzZswy0CLqvnDwlGnddc91It%2FZrQbskaZJh9iZUBv8konJmJ16Er1WxYrGIRTU2BsOS0%2F9hWvb0Qs5xFzCCWLPrO083feJRXc9PGYPl2ABw7uJEXnY8IP7v5bxnW1h8I1X%2F1uU6dzL%2FKZ%2FtlzbiUHBMd7UfdFjdLR%2Fzt4oAJb7QFlZ%2Bjh3rs3gOab%2BWhI8maDs8L02qN6kYZCVVKptclc5gJn7GCBhhx5l%2F3s%2FonaN6i1d5ZOnDEnIl2ioXpaCTEmfa7o2gYzkxXR5&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220110T224356Z&X-Amz-SignedHeaders=host&X-Amz-Expires=1200&X-Amz-Credential=ASIAWM57YO5VYPR3UBDY%2F20220110%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=11d635bcfd0d66022310ab2f80cfe815abc25dd465aa46d52761773b9a9dc338";
+      
+      //info2.previewImageUrl = "https://corporate.jp.sharp/shared/img/logo_sharp_200sq.png";
       pushmessage[1] = info2;
 
 
@@ -143,6 +156,11 @@ app.post("/api/commandtest/:command", function(req, res, next){
       console.log("line_command END");
 
       console.log("------");
+
+    }
+
+    if( req.params.command == "2"){
+
 
     }
 
@@ -198,7 +216,8 @@ app.post('/line_webhook', function(req, res, next){
             kintone_command.set_account_data2db();
             //insert_line_id2db( new_follower_id, TYPE_USER );
           }
-          else if ( event.type == 'unfollow' ){
+          else if ( event.type == 'unfollow' ){   //解除後なので、おそらくここには飛んでこない
+            console.log("LINE account unfollow");
             kintone_command.delete_account_data2db();   //★★うまく動かない！！！！！！誰かヘルプ！！！→kintoneのpermissionで削除を有効にすれば削除されるだろう
             
           }
@@ -361,120 +380,188 @@ function line_message( event ){
     return;
   }
   
-  /*
+
   if( event.type == 'message' ){
     input_line_message = event.message.text;
     input_sender_line_id = event.source.userId;
     console.log("input_message = "+ input_line_message);
     //input_destination = " ";
-    
+      
 
-    if( is_valid_register_input( input_line_message )){
-      console.log("input_date="+input_date);
-      console.log("input_time="+input_time);
-      console.log("input_pickup_people="+input_pickup_people);
-      console.log("input_desitination="+input_destination);
-      //console.log("input_sender="+input_sender);
-      
-      
-      kintone_command.get_input_sender_name()
-      .then(kintone_command.update_data2db)
-      .done(function(){
-        //line_reply_mode = LINE_MODE_ACCEPT_REPLY;
-        line_command.send_line_reply();
-        console.log("kintone_command send");
-        
-        if(( line_reply_mode == LINE_MODE_ACCEPT_REPLY ) && ( input_kintone_id > 0 )){
-          
-          //call_to_pickup_people にて電話発信しなかった場合の登録内容
-          input_log_type = LOG_TYPE_BROADCAST_LINE_REPLY;
-          input_log = "LINE直接返答。";
+    input_log = "id=" + input_sender_line_id + " msg=" + input_line_message;
+    input_log_type = LOG_TYPE_LINE_MESSAGE;
 
-          call_to_pickup_people( input_kintone_id );  //送迎対象者に送迎予定を電話で伝える
-
-        }
-        else{
-          //log record
-          input_log = "sender_line_id="+input_sender_line_id;
-          input_pickup_people_num = "";
-          input_log_type = LOG_TYPE_BROADCAST_LINE_REPLY;
-          kintone_command.set_log_db();
-        }
-        
-      });
-      
-      
-      
-    }
-
-    else if( input_line_message == WORD_REQUEST_CALENDER ){
-      line_reply_mode = LINE_MODE_SHOW_CALENDER;
-      //input_line_message = "";    //初期化の必要性は無いだろう
+    kintone_command.set_log_db()
+    .done(function(){
+      line_reply_mode = LINE_MODE_REPLY_COMMENT1;
       line_command.send_line_reply();
-    }
-
-    else{
-      //担当者未決定の日を取得し、リスト表示してbotで提示
-      kintone_command.get_vacant_day()
-      .done(function(){
-        
-        if( no_candidate_day.length > 0 ){
-          //vacant_day
-          line_command.send_line_choice();
-        }
-        else{
-          console.log("NO vacant day!");
-          
-          line_reply_mode = LINE_MODE_DENEY_REPLY_ALREADY_EXIST;
-          input_line_message = "";
-          line_command.send_line_reply();
-        }
-      
-        console.log("send_line_choice");
-      });
-      
-      
-      //show_line_choice( event );
-      
-      //line_reply_mode = LINE_MODE_NOTIFY_CORRECT_FORMAT;
-      //line_command.send_line_reply();
-    }
+    });
 
   }
+  /*
   else{
+    console.log("error. line_message");
     input_line_message = "";
     line_reply_mode = LINE_MODE_NOTIFY_CORRECT_FORMAT;
     
     line_command.send_line_reply();
   }
-  
   */
+
+
   
 }
 
-/* ==========================================================
 
-   ========================================================== */
-app.post('/api/upload', function(req, res, next){
-	console.log("come to upload.");
+var storage = multer.diskStorage({
+  //ファイルの保存先を指定(ここでは保存先は./public/images) 
+  //Express4の仕様かなんかで画像staticなファイルを保存するときはpublic/以下のフォルダに置かないとダメらしい
+  //詳しくは express.static public でググろう！
+  destination: function(req, file, cb){
+    //cb(null, './public/images/')
+    cb(null, '/tmp')
+    //console.log("finish to store file.");
+  },
+  //ファイル名を指定
+  //ここでは image.jpg という名前で保存
+  filename: function(req, file, cb){
+    cb(null, 'image.jpg')
+    //console.log("finish to change file name.");
+  }
+
+})
+
+console.log("finalize file.");
+
+var upload = multer({storage: storage})
+
+
+app.post('/api/upload/file', upload.single('file'), function(req, res, next){
+
+  console.log("come to /api/upload/file.");
+  //console.log("req=");
+  //console.log(req);
+
+  //console.log("req.body=");
+  //console.log(req.body);
+  console.log("req.body.text = " + req.body.text);
+  console.log("req.body.pass = " + req.body.pass);
+  
+  
+  if( req.body.pass != process.env.MANAGER_PASS ){
+    console.log("manager password is wrong");
+    res.json({ 'result': 'Password is wrong!' });
+    return;
+  }
+  
+
+  AWS.config.update({
+    "accessKeyId": process.env.AWS_ACCESSKEY,
+    "secretAccessKey":process.env.AWS_SECRETACCESSKEY,
+    "region": process.env.AWS_REGION 
+  });
+
+  var s3 = new AWS.S3();
+  var params1 = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: process.env.AWS_KEY
+  };
+
+  var params2 = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: process.env.AWS_KEY,
+    Expires: 60
+  };
+ 
+  /* ファイルUL */
+  var v= fs.readFileSync("/tmp/image.jpg");
+  console.log("readFileSync");
+  params1.Body=v;
+  s3.putObject(params1, function(err, data) {
+    if (err) console.log(err, err.stack);
+    else{
+      //console.log(data);
+      // URL取得
+      s3.getSignedUrl('getObject', params2, function (err, url) {
+        console.log("The URL is", url);
+
+
+        /* ============================= */
+        init_pushmessage();
+        info1 = new PushMessage();
+        info1.type = 'text';
+        //info1.text = "1_これはテストです";
+        info1.text = req.body.text;
+        pushmessage[0] = info1;
+
+        info2 = new PushMessage();
+        info2.type = 'image';   //https://developers.line.biz/ja/reference/messaging-api/#image-message
+        info2.originalContentUrl = url;
+
+        info2.previewImageUrl = url;
+        pushmessage[1] = info2;
+
+        console.log("line_command START");
+        line_command.send_line_broadcast();
+        console.log("line_command END");
+
+        console.log("------");
+
+
+
+      });
+    }
+  });
+  res.json({ 'result': 'success!' });
+
+});
+
+/*
+router.post('/', upload.single('file'), function(req, res) {
+  res.json({ 'result': 'success!' });
+});
+*/
+
+/*
+app.post('/api/upload/file', multer({ dest: 'tmp/' }).single('file'), (req, res) => {
+  console.log("come to upload file.");
+  const filename = req.body.filename
+  const content = fs.readFileSync(req.file.path, 'utf-8');
+  res.send(filename + ': ' + content);
+
+});
+*/
+
+
+
+app.post('/api/upload/text', function(req, res, next){
+	console.log("come to /api/upload/text.");
 
   //console.log("req="+ req);
   //console.log("JSON.stringify(req)=\n" );
   //console.log(JSON.stringify(req));
-  console.log("req.body=\n" );
-  console.log(req.body);
+  //console.log("req.body=\n" );
+  //console.log("req.body.text = " + req.body.text);
+  //console.log("req.body.pass = " + req.body.pass);
   console.log("==============================================");
 
-  console.log("req.body.props.text=");
-  console.log(req.body.props.text);
+  console.log("req.body.props.text=" + req.body.props.text);
+  console.log("req.body.props.pass=" + req.body.props.pass);
   
   console.log("==============================================");
+
+  if( req.body.props.pass != process.env.MANAGER_PASS ){
+    console.log("manager password is wrong");
+    res.json({ 'result': 'Password is wrong!' });
+    return;
+  }
 
   init_pushmessage();
 
   info1 = new PushMessage();
   info1.type = 'text';
   info1.text = req.body.props.text;
+  //info1.text = req.body.text;
   pushmessage[0] = info1;
 
 

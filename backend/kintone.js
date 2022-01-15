@@ -369,7 +369,7 @@ function get_input_sender_name_inner( dfd ){
 /* ------------------------------------------------------------
    ログをkintoneへ記録
   ------------------------------------------------------------- */
-function log_record( dfd, input_date, input_time, is_attached, input_log ){
+function log_record( dfd, is_attached, input_log ){
 
   
   var options = {

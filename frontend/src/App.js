@@ -5,42 +5,64 @@ import './App.css'
 
 class App extends Component {
 
-  input = ''
+  inputText = ''
+  inputFile = ''
+  inputPass = ''
 
   constructor(props){
     super(props)
     this.state = {
       send: '',
-      message:''
+      message:'',
+      file:'',
+      pass:''
     }
-    this.doChange = this.doChange.bind(this)
+    this.doTextChange = this.doTextChange.bind(this)
+    this.doFileChange = this.doFileChange.bind(this)
+    this.doPassChange = this.doPassChange.bind(this)
     this.doSubmit = this.doSubmit.bind(this)
     this.doDeleteFile = this.doDeleteFile.bind(this)
-    this.doCertification = this.doCertification(this)
+    //this.doCertification = this.doCertification(this)
   }
 
-  doChange(event){
+  doTextChange(event){
 
-    this.input = event.target.value;
+    this.inputText = event.target.value;
 
     //event.preventDefault()
+  }
+
+  doFileChange(event){
+
+    this.inputFile = event.target.files[0];
+    console.log("inputFile="+this.inputFile);
+    
+  }
+
+  doPassChange(event){
+    this.inputPass = event.target.value;
+    console.log("inputPass="+this.inputPass);
   }
 
   doSubmit(event){
     
     //console.log("input="+this.input);
     this.setState({
-      send: '送信しました！(添付ファイルはまだ未対応)',
-      message: this.input
+      send: '送信しました！',
+      message: this.inputText,
+      file: this.inputFile,
+      pass: this.Pass
     })
 
     var senddata = {
       //text: "abc"
-      text: this.input,
-      image : " ",
-      pass : "163"
+      text: this.inputText,
+      //message: this.inputText,
+      //image : " ",
+      file: this.inputFile,
+      pass : this.inputPass
     }
-    send_InputData2backend(senddata)
+    send_InputData2backend(senddata);
 
     event.preventDefault()
   }
@@ -49,10 +71,11 @@ class App extends Component {
 
   }
 
+  /*
   doCertification(event){
 
   }
-
+  */
   
 
 
@@ -64,7 +87,7 @@ class App extends Component {
 
       <div class="form-group">
         <label for="inputText">送信文面</label>
-        <textarea class="form-control" rows="8" maxlength="5000" onChange={this.doChange} />
+        <textarea class="form-control" rows="8" maxLength="5000" onChange={this.doTextChange} />
       </div>
 
 
@@ -72,7 +95,7 @@ class App extends Component {
         <label for="inputFile">添付ファイル（オプション）</label>
         <div class="input-group">
           <div class="custom-file">
-            <input type="file" class="custom-file-input" id="inputFile" />
+            <input type="file" class="custom-file-input" onChange={this.doFileChange}/>
             <label class="custom-file-label" for="inputFile" data-browse="参照">ファイルを選択(ここにドロップすることもできます)</label>
           </div>
           <div class="input-group-append">
@@ -84,8 +107,8 @@ class App extends Component {
       <br/><br/>
       <hr/>
       <div class="form-group">
-        <label for="pass">管理者パスワード（これは送信されません）</label>
-        <input type="password" class="form-control" onCertification={this.doCertification} />
+        <label for="inputPass">管理者パスワード（これは送信されません）</label>
+        <input type="password" class="form-control" onChange={this.doPassChange} />
       </div>
 
 
@@ -115,11 +138,14 @@ class App extends Component {
 
 function send_InputData2backend(props){
 
-  //var url = process.env.MYDOMAIN + "/api/upload"
-  var url = "https://dev-degital-kairanban.herokuapp.com/api/upload"
-  //var url = "https://jsonplaceholder.typicode.com/posts"
+  //var url = process.env.MYDOMAIN + "/api/upload";
+  var url_text = "https://dev-degital-kairanban.herokuapp.com/api/upload/text";
+  var url_file = "https://dev-degital-kairanban.herokuapp.com/api/upload/file";
+  
+  //var url = "https://jsonplaceholder.typicode.com/posts";
 
-  console.log("url="+ url)
+  console.log("text = " + props.text);
+  console.log("pass = " + props.pass);
 
   /*
   var senddata = {
@@ -129,18 +155,55 @@ function send_InputData2backend(props){
   }
 */
 
-  axios.post( url, { props })
-    .then(res => {
+  const params = new FormData();
+
+  if(props.file == ''){
+    /* text only */
+    console.log("text only send");
+    
+    //params.append('text', props.text);
+    //params.append('pass', props.pass);
+
+    axios.post( url_text, { props })
+      .then(res => {
+        console.log("post text only START");
+        console.log("res="+res);
+        console.log(res)
+        console.log("res.data=")
+        console.log(res.data)
+      })
+      .catch(function (error) {
+        console.log(error);
+      }
+    );
+
+  }
+
+  else{
+    params.append('text', props.text);
+    params.append('file', props.file);
+    params.append('pass', props.pass);
+    axios.post( 
+      url_file, 
+      params,
+      {
+        headers: {
+          'content-type': 'multipart/form-data',
+        },
+      }
+
+    )
+    .then((result) => {
       console.log("post START");
-      console.log("res="+res);
-      console.log(res)
-      console.log("res.data=")
-      console.log(res.data)
+      console.log("res=");
+      console.log(result);
     })
-    .catch(function (error) {
-      console.log(error);
-    })
+    .catch(() => {
+      console.log('upload failed...');
+    });
+  }
 
 }
+
 
 export default App

@@ -1,6 +1,6 @@
 /* LINE送受信 */
 
-var DEBUG = 0;          //1=DEBUG 0=RELEASE   (オーナーにのみ配信する機能もこれ！★)
+var DEBUG = 1;          //1=DEBUG 0=RELEASE   (オーナーにのみ配信する機能もこれ！★)
 
 /* LINEのACCESS_TOKEN等 を heroku configへ各自セット必要
     heroku config:set LINE_CHANNEL_ACCESS_TOKEN=xxxx
@@ -109,16 +109,17 @@ function init_pushmessage(){
   
     init_pushmessage();
     
-/*
-    if(( mode == LINE_MODE_1 ) || ( mode== LINE_MODE_ACCEPT_REPLY )){
+
+    if((mode == LINE_MODE_REPLY_COMMENT1 ) || ( mode == LINE_MODE_1 ) || ( mode== LINE_MODE_ACCEPT_REPLY )){
       info1 = new PushMessage();
       info1.type = 'text';
-      info1.text = "受け付けました！\nありがとうございました"
+      info1.text = "貴重なご意見ありがとうございました！管理者で確認させて頂きます"
                     + String.fromCodePoint(EMOJI_peace);
       pushmessage[0] = info1;     
       pushmessage[1] = choose_line_stamp( TYPE_LINE_STAMP_MOTIVATION );
        
     }
+/*
     else if( mode == LINE_MODE_DENEY_REPLY_NO_DATA ){
       info1 = new PushMessage();
       info1.type = 'text';
