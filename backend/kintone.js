@@ -34,10 +34,15 @@ var kintone_id;
 
 
 
-/* ====== 送迎者DB操作 ======= */
+/* ====== 登録者DB操作 ======= */
 
 module.exports.set_account_data2db = function(req, res){
   set_account( new_follower_line_id );
+}
+
+module.exports.update_account_data2db = function(req, res){
+  var dfd_update_account = new $.Deferred;
+  return update_account_name( dfd_update_account, new_follower_line_id, new_follower_name );
 }
 
 module.exports.delete_account_data2db = function(req, res){
@@ -103,6 +108,58 @@ function set_account( id ){
   });
 
 }
+
+
+
+/* ------------------------------------------------------------
+   idのデータレコードにnameを追加する（アカウントDB）
+  ------------------------------------------------------------- */
+function update_account_name( dfd, id, name ){
+  
+  console.log("URL="+process.env.KINTONE_BASE_URL);
+  console.log("API TOKEN="+process.env.KINTONE_DESTINATION_TOKEN);
+  console.log("APP ID="+process.env.KINTONE_DESTINATION_APP_ID);
+  console.log("id="+id);
+    
+    
+  select_account_id()
+  .done(function(){
+    return update_account_name_inner( dfd, kintone_id, new_follower_name );
+    //return dfd.resolve();
+  });  
+    
+  return dfd.promise();
+
+    /*
+    var options = {
+      uri: process.env.KINTONE_BASE_URL,
+      headers: {
+        "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN,
+        "Content-type": "application/json"
+      },
+      json: {
+        "app": process.env.KINTONE_DESTINATION_APP_ID,
+        "record": {
+          "line_id": {
+            "value": id
+          }
+        }
+      }
+    };
+  
+    request.post(options, function(error, response, body){
+      if (!error && response.statusCode == 200) {
+        console.log("[set_data]success!");
+      } else {
+        console.log('[set_data]http error: '+ response.statusCode);
+      }
+    });
+    */
+}
+
+  
+  
+
 
 /* ------------------------------------------------------------
    kintoneへデータを削除する（アカウントDB）
@@ -223,6 +280,54 @@ function delete_account_inner( kintone_id ){
   
 }
 
+/* ------------------------------------------------------------
+   kintoneの特定のIDのデータをupdateする
+  ------------------------------------------------------------- */
+  function update_account_name_inner( dfd_updateid, kintone_id, name ){
+  
+    console.log("id="+kintone_id+"  name="+name);
+    
+    //var dfd_updateid = new $.Deferred;
+    
+    if( kintone_id == -1 ){
+      console.log("update_account error");
+      //line_reply_mode = LINE_MODE_DENEY_REPLY_NO_DATA;
+        return dfd_updateid.resolve();
+    }
+    
+    var options = {
+      uri: process.env.KINTONE_BASE_URL,
+      headers: {
+        "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN,
+        "Content-type": "application/json"
+      },
+      json: {
+        "app": process.env.KINTONE_DESTINATION_APP_ID,
+        "id": kintone_id,
+        "record": {
+          "name": {
+            "value": name
+          }
+        }
+      }
+    };
+  
+    request.put(options, function(error, response, body){
+      if (!error && response.statusCode == 200) {
+        console.log("[update_data]success!");
+        return dfd_updateid.resolve();
+      } else {
+        console.log('[update_data]http error: '+ response.statusCode);
+        //line_reply_mode = LINE_MODE_DENEY_REPLY_NO_DATA;
+        return dfd_updateid.resolve();
+      }
+    });
+    
+    return dfd_updateid.promise();
+    
+  }
+
+  
 
 
 
@@ -410,7 +515,3 @@ function log_record( dfd, is_attached, input_log ){
 }
 
 
-
-
-
-       

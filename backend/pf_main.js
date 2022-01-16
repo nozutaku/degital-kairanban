@@ -53,9 +53,15 @@ global.LINE_MODE_SHOW_CALENDER = 90;
 
 global.LINE_MODE_NOTIFY_CORRECT_FORMAT = 7;   //フォーマット問い合わせ
 global.LINE_MODE_FOLLOW = 8;
-global.LINE_MODE_UNFOLLOW = 9;
+global.LINE_MODE_FOLLOW_REGISTER_NAME = 9;
+global.LINE_MODE_UNFOLLOW = 10;
 
 global.new_follower_line_id;
+global.new_follower_name;
+
+
+
+
 
 
 global.PushMessage = function( ){
@@ -82,18 +88,21 @@ function init_pushmessage(){
 // グローバル変数。追加時はinit_input_data()に追加すること
 global.input_date;
 global.input_time;
-global.input_pickup_people;   //送迎対象者(送迎される人)
-global.input_pickup_people_num;   //送迎対象者(送迎される人)の番号
-global.input_pickup_people_callid;  //送迎対象者の電話番号
-global.input_pickup_people_auto_call_flg;   //送迎対象者への自動電話連絡有無
+//global.input_pickup_people;   //送迎対象者(送迎される人)
+//global.input_pickup_people_num;   //送迎対象者(送迎される人)の番号
+//global.input_pickup_people_callid;  //送迎対象者の電話番号
+//global.input_pickup_people_auto_call_flg;   //送迎対象者への自動電話連絡有無
 global.input_sender;          //送迎する人
 global.input_sender_line_id;  //送迎する人のLINEID
-global.input_destination;
-global.input_destination_num; //場所の番号
+//global.input_destination;
+//global.input_destination_num; //場所の番号
 global.input_kintone_id;
 global.line_broadcast_account　= "";
 
 global.input_is_attached = "無し";
+
+global.TAG_REGISTER_NAME1 = "名前は";
+global.TAG_REGISTER_NAME2 = "です";
 
 
 global.line_broadcast_account;
@@ -228,7 +237,7 @@ app.post('/line_webhook', function(req, res, next){
           //welcome メッセージを送る
           if( event.type == 'follow' ){
             
-            line_reply_mode = LINE_MODE_FOLLOW;
+            line_reply_mode = LINE_MODE_FOLLOW_REGISTER_NAME;
             input_log_type = LOG_TYPE_LINE_REGISTER_ID;
             //line_message(event);
           }
@@ -387,6 +396,22 @@ function line_message( event ){
     console.log("input_message = "+ input_line_message);
     //input_destination = " ";
       
+    if( check_register_message( input_line_message )){
+      new_follower_line_id = input_sender_line_id;
+
+      kintone_command.update_account_data2db()
+      //.then(line_command.send_request_register_place)
+      .done(function(){
+        line_reply_mode = LINE_MODE_FOLLOW;
+        line_command.send_line_reply();
+
+        input_is_attached = "無し";
+        input_log = "line_id=" + new_follower_line_id + "name=" + new_follower_name;
+        kintone_command.set_log_db();
+      });
+
+      return;
+    }
 
     input_log = "id=" + input_sender_line_id + " msg=" + input_line_message;
     input_log_type = LOG_TYPE_LINE_MESSAGE;
@@ -606,6 +631,30 @@ app.get("/api", (req, res) => {
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname,'../frontend/build/index.html'));
 });
+
+
+/////////////////////////////////////////////////////////////
+//              UTILITY
+/////////////////////////////////////////////////////////////
+
+// 「名前は●●です」フォーマットならば名前登録とみなし、
+//new_follower_name に名前を格納し
+//"1"をreturn
+function check_register_message( str ){
+  var ret = 0;
+
+  if( str.indexOf( TAG_REGISTER_NAME1 ) != -1 ){
+    new_follower_name = str.substr( TAG_REGISTER_NAME1.length, str.length-TAG_REGISTER_NAME1.length );
+    ret = 1;
+
+    if( new_follower_name.indexOf( TAG_REGISTER_NAME2 ) != -1 ){
+      new_follower_name = new_follower_name.substr( 0, new_follower_name.length-TAG_REGISTER_NAME2.length );
+    }
+  }
+
+  return ret;
+
+}
 
 app.listen(port, () => {
     console.log(`listening on *:${port}`);

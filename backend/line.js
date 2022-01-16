@@ -198,6 +198,7 @@ function init_pushmessage(){
       
     }
 */
+
     if ( mode == LINE_MODE_FOLLOW ){
       info1 = new PushMessage();
       info1.type = 'text';
@@ -211,6 +212,23 @@ function init_pushmessage(){
       pushmessage[1] = choose_line_stamp( TYPE_LINE_STAMP_MOTIVATION );
 
     }
+
+    else if ( mode == LINE_MODE_FOLLOW_REGISTER_NAME ){
+      info1 = new PushMessage();
+      info1.type = 'text';
+      info1.text = "登録ありがとうございました。\n\n"
+        + "お名前を教えてもらえますか？\n"
+        + "「名前は●●です」"
+        + "と入力してね。"
+        //+ "(" + new_follower_line_id.substr( -4 ) +")"
+        + String.fromCodePoint(choose_emoji(TYPE_LINE_EMOJI_SMILE));
+      
+      pushmessage[0] = info1;
+
+      pushmessage[1] = choose_line_stamp( TYPE_LINE_STAMP_MOTIVATION );
+
+    }
+
     else if ( mode == LINE_MODE_UNFOLLOW ){   //ブロック後のため本メッセージは届かない見込み
       info1 = new PushMessage();
       info1.type = 'text';
@@ -291,7 +309,6 @@ function init_pushmessage(){
         });
   }
 
-  
 
 function post_back(e) {
     console.log("post_back");
