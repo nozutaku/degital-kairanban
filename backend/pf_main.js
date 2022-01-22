@@ -527,10 +527,24 @@ app.post('/api/upload/file', upload.single('file'), function(req, res, next){
         pushmessage[1] = info2;
 
         console.log("line_command START");
-        line_command.send_line_broadcast();
-        console.log("line_command END");
 
-        console.log("------");
+        kintone_command.get_account_all()
+        .then(line_command.send_line_broadcast)
+        .done(function(){
+          //LOG
+          input_log_type = LOG_TYPE_LINE_BROADCAST;  
+          input_is_attached = "無し";
+          input_log = "";  //★★ここに本文の先頭数文字を。
+          kintone_command.set_log_db();
+
+          console.log("line_command END");
+          console.log("------");
+        });
+
+        //line_command.send_line_broadcast();
+        //console.log("line_command END");
+
+        
 
 
 

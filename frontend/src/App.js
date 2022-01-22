@@ -1,9 +1,24 @@
 import React, { Component } from 'react'
 import axios from 'axios';
 import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
-class App extends Component {
+
+class Root extends Component {
+  render() {
+    return <h1>rootです</h1>;
+  }
+}
+
+class PageRengo extends Component{
+  render() {
+    return <h2>鹿ノ台連合会です</h2>;
+  }
+}
+
+class PageNorthSalon extends Component {
+//class App extends Component {
 
   inputText = ''
   inputFile = ''
@@ -205,5 +220,25 @@ function send_InputData2backend(props){
 
 }
 
+const rootElement = document.getElementById("root");
 
-export default App
+
+// 複数ページ対応 React Router
+// https://reffect.co.jp/react/react-router-6
+// ページを増やす場合はここを増やすこと
+
+export default class App extends Component {
+  render() {
+    return (
+        <Routes>
+        <Route path="/" element={<Root />} />
+        <Route path="/north-salon" element={<PageNorthSalon />} />
+        <Route path="/rengo" element={<PageRengo />} />
+        </Routes>
+    );
+  }
+}
+
+
+
+//export default App
