@@ -4,29 +4,68 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
-
+/* ===========================================
+  トップページ
+  ============================================ */
 class Root extends Component {
+  constructor(props){
+    super(props)
+  }
   render() {
-    return <h1>rootです</h1>;
+    return <h1>正しいURLを入力ください</h1>;
   }
 }
 
+/* ===========================================
+  自治連合会　ページ
+  ============================================ */
 class PageRengo extends Component{
+  constructor(props){
+    super(props)
+  }
+
   render() {
-    return <h2>鹿ノ台連合会です</h2>;
+    return <div>
+      <h1 class="bg-secondary text-white display-4">デジタル回覧板　鹿ノ台自治連合会</h1>
+      <UtilitySendMessagePage board="1" />
+    </div>
   }
 }
 
-class PageNorthSalon extends Component {
-//class App extends Component {
+/* ===========================================
+  北サロン　ページ
+  ============================================ */
+class PageNorthSalon extends Component{
 
+  constructor(props){
+    super(props)
+  }
+
+  render() {
+    return <div>
+      <h1 class="bg-primary text-white display-4">デジタル回覧板　北サロン</h1>
+      <UtilitySendMessagePage board="2" />
+    </div>
+      
+  }
+}
+
+/* ===========================================
+  タイトル以外の実体
+  ============================================ */
+class UtilitySendMessagePage extends Component {
+
+  /*
   inputText = ''
   inputFile = ''
   inputPass = ''
+  */
+  inputFile = '';
 
   constructor(props){
     super(props)
     this.state = {
+      board: props.board,
       send: '',
       message:'',
       file:'',
@@ -38,44 +77,69 @@ class PageNorthSalon extends Component {
     this.doSubmit = this.doSubmit.bind(this)
     this.doDeleteFile = this.doDeleteFile.bind(this)
     //this.doCertification = this.doCertification(this)
+
+    console.log("[UtilitySendMessagePage init]board = " + this.state.board);
+    console.log("[UtilitySendMessagePage init]send = " + this.state.send);
+    console.log("[UtilitySendMessagePage init]message = " + this.state.message);
+    console.log("[UtilitySendMessagePage init]file = " + this.state.file);
+    console.log("[UtilitySendMessagePage init]pass = " + this.state.pass);
+
   }
 
   doTextChange(event){
+    this.setState({
+      message: event.target.value
+    })
 
-    this.inputText = event.target.value;
+    //this.inputText = event.target.value;
 
     //event.preventDefault()
   }
 
   doFileChange(event){
 
-    this.inputFile = event.target.files[0];
+    this.setState({
+      file: event.target.files[0]
+    })
+    this.inputFile = event.target.files[0];     //★temporary
     console.log("inputFile="+this.inputFile);
     
   }
 
   doPassChange(event){
-    this.inputPass = event.target.value;
-    console.log("inputPass="+this.inputPass);
+
+    this.setState({
+      pass: event.target.value
+    })
+    //this.inputPass = event.target.value;
   }
 
   doSubmit(event){
     
     //console.log("input="+this.input);
+    /*
     this.setState({
       send: '送信しました！',
       message: this.inputText,
       file: this.inputFile,
       pass: this.Pass
     })
+    */
+    this.setState({
+      send: '送信しました！'
+    })
 
     var senddata = {
+      board: this.state.board,
+      text: this.state.message,
+      file: this.state.file,
+      pass: this.state.pass
       //text: "abc"
-      text: this.inputText,
+      //text: this.inputText,
       //message: this.inputText,
       //image : " ",
-      file: this.inputFile,
-      pass : this.inputPass
+      //file: this.inputFile,
+      //pass : this.inputPass
     }
     send_InputData2backend(senddata);
 
@@ -96,9 +160,6 @@ class PageNorthSalon extends Component {
 
   render(){
     return <div class="container">
-
-
-      <h1 class="bg-primary text-white display-4">デジタル回覧板</h1>
 
       <div class="form-group">
         <label for="inputText">送信文面</label>
@@ -154,13 +215,17 @@ class PageNorthSalon extends Component {
 function send_InputData2backend(props){
 
   //var url = process.env.MYDOMAIN + "/api/upload";
-  var url_text = "https://dev-degital-kairanban.herokuapp.com/api/upload/text";
-  var url_file = "https://dev-degital-kairanban.herokuapp.com/api/upload/file";
-  
-  //var url = "https://jsonplaceholder.typicode.com/posts";
+  var url_text = process.env.REACT_APP_MYDOMAIN + "/api/upload/text";   //REACTの環境変数は REACT_APP_* をつける必要性有
+  var url_file = process.env.REACT_APP_MYDOMAIN + "/api/upload/file";
 
+  //var url = "https://jsonplaceholder.typicode.com/posts";
+  
   console.log("text = " + props.text);
   console.log("pass = " + props.pass);
+  console.log("board = " + props.board);
+
+  //console.log("url_text = " + url_text);
+  //console.log("url_file = " + url_file);
 
   /*
   var senddata = {
@@ -195,6 +260,7 @@ function send_InputData2backend(props){
   }
 
   else{
+    params.append('board', props.board);
     params.append('text', props.text);
     params.append('file', props.file);
     params.append('pass', props.pass);
@@ -220,20 +286,24 @@ function send_InputData2backend(props){
 
 }
 
-const rootElement = document.getElementById("root");
+//const rootElement = document.getElementById("root");
 
 
-// 複数ページ対応 React Router
-// https://reffect.co.jp/react/react-router-6
-// ページを増やす場合はここを増やすこと
 
+/* ====================================================
+  メインページ　振り分け　(複数ページ対応 React Router)
+  （ページを増やす場合はここを増やすこと ★★★）
+
+  https://reffect.co.jp/react/react-router-6
+  ページを増やす場合はここを増やすこと
+  ===================================================== */
 export default class App extends Component {
   render() {
     return (
         <Routes>
         <Route path="/" element={<Root />} />
-        <Route path="/north-salon" element={<PageNorthSalon />} />
-        <Route path="/rengo" element={<PageRengo />} />
+        <Route path="/shikanodai/rengo" element={<PageRengo />} />
+        <Route path="/shikanodai/north-salon" element={<PageNorthSalon />} />
         </Routes>
     );
   }
