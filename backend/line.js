@@ -1,6 +1,6 @@
 /* LINE送受信 */
 
-var DEBUG = 1;          //1=DEBUG 0=RELEASE   (オーナーにのみ配信する機能もこれ！★)
+var DEBUG = 0;          //1=DEBUG 0=RELEASE   (オーナーにのみ配信する機能もこれ！★)
 
 /* LINEのACCESS_TOKEN等 を heroku configへ各自セット必要
     heroku config:set LINE_CHANNEL_ACCESS_TOKEN=xxxx
@@ -87,7 +87,7 @@ function init_pushmessage(){
     
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + process.env.LINE_CHANNEL_ACCESS_TOKEN
+      'Authorization': 'Bearer ' + process.env.NO1_LINE_CHANNEL_ACCESS_TOKEN
     }
     var body = {
       replyToken: line_reply_token,
@@ -292,7 +292,7 @@ function init_pushmessage(){
     
       var headers = {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + process.env.LINE_CHANNEL_ACCESS_TOKEN
+          'Authorization': 'Bearer ' + process.env.NO1_LINE_CHANNEL_ACCESS_TOKEN
       }
       var body = {
           to: destination,
@@ -336,7 +336,7 @@ function post_back(e) {
     
         var headers = {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + process.env.LINE_CHANNEL_ACCESS_TOKEN
+          'Authorization': 'Bearer ' + process.env.NO1_LINE_CHANNEL_ACCESS_TOKEN
       }
   
     request({

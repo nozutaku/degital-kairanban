@@ -59,8 +59,34 @@ global.LINE_MODE_UNFOLLOW = 10;
 global.new_follower_line_id;
 global.new_follower_name;
 
+/* -----------------------------
+  宛先設定DB
+  boardID, manager_pass, LINE_AccessToken, KINTONE_AppID, KINTONE_Token
 
 
+  テーブルの中に環境変数入れるとビルドエラー
+
+  global.DESTINATION_SETTINGS_LEN = 5;
+  global.DESTINATION_NUM = 2;   //★変動
+
+  let destination_settings = [
+  [
+    1, 
+    process.env.NO1_MANAGER_PASS, 
+    process.env.NO1_LINE_CHANNEL_ACCESS_TOKEN,
+    process.env.NO1_KINTONE_DESTINATION_APP_ID, 
+    process.env.NO1_KINTONE_DESTINATION_TOKEN
+  ],
+  [
+    2, 
+    "process.env.NO2_MANAGER_PASS", 
+    "process.env.NO2_LINE_CHANNEL_ACCESS_TOKEN",
+    "process.env.NO2_KINTONE_DESTINATION_APP_ID", 
+    "process.env.NO2_KINTONE_DESTINATION_TOKEN"
+  ]
+];
+
+  ------------------------------ */
 
 
 
@@ -461,6 +487,9 @@ console.log("finalize file.");
 var upload = multer({storage: storage})
 
 
+/* ========================================================
+  frontendからデータを受け取る
+  ========================================================= */
 app.post('/api/upload/file', upload.single('file'), function(req, res, next){
 
   console.log("come to /api/upload/file.");
@@ -469,15 +498,24 @@ app.post('/api/upload/file', upload.single('file'), function(req, res, next){
 
   //console.log("req.body=");
   //console.log(req.body);
+  console.log("req.body.board = " + req.body.board);
   console.log("req.body.text = " + req.body.text);
   console.log("req.body.pass = " + req.body.pass);
   
   
-  if( req.body.pass != process.env.MANAGER_PASS ){
+  // pass check
+  if( !pass_check( req.body.board, req.body.pass) ){
     console.log("manager password is wrong");
     res.json({ 'result': 'Password is wrong!' });
     return;
   }
+
+  /*
+  if( req.body.pass != process.env.NO1_MANAGER_PASS ){
+    console.log("manager password is wrong");
+    res.json({ 'result': 'Password is wrong!' });
+    return;
+  }*/
   
 
   AWS.config.update({
@@ -577,23 +615,29 @@ app.post('/api/upload/text', function(req, res, next){
 	console.log("come to /api/upload/text.");
 
   //console.log("req="+ req);
-  //console.log("JSON.stringify(req)=\n" );
-  //console.log(JSON.stringify(req));
   //console.log("req.body=\n" );
-  //console.log("req.body.text = " + req.body.text);
-  //console.log("req.body.pass = " + req.body.pass);
+
   console.log("==============================================");
 
+  console.log("req.body.props.board = " + req.body.props.board);
   console.log("req.body.props.text=" + req.body.props.text);
   console.log("req.body.props.pass=" + req.body.props.pass);
   
   console.log("==============================================");
 
-  if( req.body.props.pass != process.env.MANAGER_PASS ){
+  // pass check
+  if( !pass_check( req.body.props.board, req.body.props.pass) ){
     console.log("manager password is wrong");
     res.json({ 'result': 'Password is wrong!' });
     return;
   }
+  /*  
+  if( req.body.props.pass != process.env.NO1_MANAGER_PASS ){
+    console.log("manager password is wrong");
+    res.json({ 'result': 'Password is wrong!' });
+    return;
+  }
+  */
 
   init_pushmessage();
 
@@ -669,6 +713,48 @@ function check_register_message( str ){
   return ret;
 
 }
+
+// 管理者PASSのvalidation check。正＝１、誤＝０
+function pass_check(board, pass){
+
+/* 環境変数がテーブルの中に使え無さそうなのでとりあえずダサい方法で！
+  for (let i = 0; i < DESTINATION_NUM; i++){
+    for (let j = 0; j < DESTINATION_SETTINGS_LEN; j++){
+      console.log("destination_settings[" + i + "][" + j + "]="+destination_settings[i][j] + " board=" + board);
+      if( destination_settings[i][0] == board ){
+        //console.log("destination_settings[i][1]="+destination_settings[i][1] + " board=" + board);
+        if( destination_settings[i][1] == pass ){
+          
+          return 1; //pass一致
+        }
+        else 
+          return 0; //pass不一致
+      } 
+    }
+  }
+  return 0;
+*/
+
+
+  if( board == 1 ){
+    if( pass == process.env.NO1_MANAGER_PASS )
+      return 1; //pass一致
+    else
+      return 0; //pass不一致
+  }
+  else if( board == 2 ){
+    if( pass == process.env.NO2_MANAGER_PASS )
+      return 1; //pass一致
+    else
+      return 0; //pass不一致
+  }
+  else{
+
+  }
+  return 0; //pass不一致
+
+}
+
 
 app.listen(port, () => {
     console.log(`listening on *:${port}`);

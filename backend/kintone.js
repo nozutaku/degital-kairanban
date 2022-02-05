@@ -78,19 +78,19 @@ module.exports.set_log_db = function(req, res){
 function set_account( id ){
   
   console.log("URL="+process.env.KINTONE_BASE_URL);
-  console.log("API TOKEN="+process.env.KINTONE_DESTINATION_TOKEN);
-  console.log("APP ID="+process.env.KINTONE_DESTINATION_APP_ID);
+  console.log("API TOKEN="+process.env.NO1_KINTONE_DESTINATION_TOKEN);
+  console.log("APP ID="+process.env.NO1_KINTONE_DESTINATION_APP_ID);
   console.log("id="+id);
   
   
   var options = {
     uri: process.env.KINTONE_BASE_URL,
     headers: {
-      "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN,
+      "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN,
       "Content-type": "application/json"
     },
     json: {
-      "app": process.env.KINTONE_DESTINATION_APP_ID,
+      "app": process.env.NO1_KINTONE_DESTINATION_APP_ID,
       "record": {
         "line_id": {
           "value": id
@@ -117,8 +117,8 @@ function set_account( id ){
 function update_account_name( dfd, id, name ){
   
   console.log("URL="+process.env.KINTONE_BASE_URL);
-  console.log("API TOKEN="+process.env.KINTONE_DESTINATION_TOKEN);
-  console.log("APP ID="+process.env.KINTONE_DESTINATION_APP_ID);
+  console.log("API TOKEN="+process.env.NO1_KINTONE_DESTINATION_TOKEN);
+  console.log("APP ID="+process.env.NO1_KINTONE_DESTINATION_APP_ID);
   console.log("id="+id);
     
     
@@ -134,11 +134,11 @@ function update_account_name( dfd, id, name ){
     var options = {
       uri: process.env.KINTONE_BASE_URL,
       headers: {
-        "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN,
+        "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN,
         "Content-type": "application/json"
       },
       json: {
-        "app": process.env.KINTONE_DESTINATION_APP_ID,
+        "app": process.env.NO1_KINTONE_DESTINATION_APP_ID,
         "record": {
           "line_id": {
             "value": id
@@ -192,7 +192,7 @@ function delete_account( id ){    //new_follower_line_id
   
   console.log("raw_query = " + raw_query );
   
-  select_url = select_url + "?app=" + process.env.KINTONE_DESTINATION_APP_ID + "&query=" + encodeURIComponent( raw_query );
+  select_url = select_url + "?app=" + process.env.NO1_KINTONE_DESTINATION_APP_ID + "&query=" + encodeURIComponent( raw_query );
 
   
   console.log("select_url = " + select_url);
@@ -200,7 +200,7 @@ function delete_account( id ){    //new_follower_line_id
   var options = {
     uri: select_url,
     headers: {
-      "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN
+      "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN
     },
     json: true
   };
@@ -256,11 +256,11 @@ function delete_account_inner( kintone_id ){
     method : 'DELETE',
     headers: {
       "method": 'DELETE',
-      "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN,
+      "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN,
       "Content-type": "application/json"
     },
     json: {
-      "app": process.env.KINTONE_DESTINATION_APP_ID,
+      "app": process.env.NO1_KINTONE_DESTINATION_APP_ID,
       "ids": [1]
       //"ids": kintone_id
     }
@@ -298,11 +298,11 @@ function delete_account_inner( kintone_id ){
     var options = {
       uri: process.env.KINTONE_BASE_URL,
       headers: {
-        "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN,
+        "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN,
         "Content-type": "application/json"
       },
       json: {
-        "app": process.env.KINTONE_DESTINATION_APP_ID,
+        "app": process.env.NO1_KINTONE_DESTINATION_APP_ID,
         "id": kintone_id,
         "record": {
           "name": {
@@ -338,7 +338,7 @@ function get_account_data_all( dfd ){
   //var raw_query = "line_id=" + "\"" + new_follower_line_id + "\"" ;
   //console.log("raw_query = " + raw_query );
   
-  select_url = select_url + "?app=" + process.env.KINTONE_DESTINATION_APP_ID;
+  select_url = select_url + "?app=" + process.env.NO1_KINTONE_DESTINATION_APP_ID;
   //select_url = select_url + "?app=" + process.env.CYBOZU_ACCOUNT_APP_ID + "&query=" + encodeURIComponent( raw_query );
 
   
@@ -348,7 +348,7 @@ function get_account_data_all( dfd ){
   var options = {
     uri: select_url,
     headers: {
-      "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN
+      "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN
     },
     json: true
   };
@@ -424,13 +424,13 @@ function get_input_sender_name_inner( dfd ){
   var raw_query = "line_id=" + "\"" + input_sender_line_id + "\"";
   console.log("raw_query = " + raw_query );
   
-  select_url = select_url + "?app=" + process.env.KINTONE_DESTINATION_APP_ID + "&query=" + encodeURIComponent( raw_query );
+  select_url = select_url + "?app=" + process.env.NO1_KINTONE_DESTINATION_APP_ID + "&query=" + encodeURIComponent( raw_query );
   console.log("select_url = " + select_url);
   
   var options = {
     uri: select_url,
     headers: {
-      "X-Cybozu-API-Token": process.env.KINTONE_DESTINATION_TOKEN
+      "X-Cybozu-API-Token": process.env.NO1_KINTONE_DESTINATION_TOKEN
     },
     json: true
   };
